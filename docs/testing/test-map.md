@@ -56,4 +56,4 @@
 ## Связанные документы
 
 - Матрица L2 payload-кейсов: [`docs/contracts/contract-tests.md`](../contracts/contract-tests.md)
-- Канонический Test Design L1-L4: [`docs/architecture/stage-2-specification.md`](../architecture/stage-2-specification.md:259)
+- Канонический Test Design L1-L4: [`docs/architecture/stage-2-specification.md`](../../../../docs/architecture/stage-2-specification.md:259)

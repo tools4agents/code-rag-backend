@@ -30,4 +30,4 @@
 ## Связанные требования
 
 - [`tasks_descriptions/tasks/task-03-backend-project-registry-crud.md`](../../../tasks_descriptions/tasks/task-03-backend-project-registry-crud.md)
-- [`docs/architecture/stage-2-specification.md`](../../architecture/stage-2-specification.md:263)
+- [`docs/architecture/stage-2-specification.md`](../../../../../docs/architecture/stage-2-specification.md:263)

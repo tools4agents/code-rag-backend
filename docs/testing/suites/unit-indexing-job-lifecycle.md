@@ -31,4 +31,4 @@
 ## Связанные требования
 
 - [`tasks_descriptions/tasks/task-04-backend-indexing-job-progress.md`](../../../tasks_descriptions/tasks/task-04-backend-indexing-job-progress.md)
-- [`docs/architecture/stage-2-specification.md`](../../architecture/stage-2-specification.md:263)
+- [`docs/architecture/stage-2-specification.md`](../../../../../docs/architecture/stage-2-specification.md:263)

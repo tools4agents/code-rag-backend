@@ -31,4 +31,4 @@
 ## Связанные требования
 
 - [`tasks_descriptions/tasks/task-02-web-ui-api-contract-openapi.md`](../../../tasks_descriptions/tasks/task-02-web-ui-api-contract-openapi.md)
-- [`docs/architecture/stage-2-specification.md`](../../architecture/stage-2-specification.md:334)
+- [`docs/architecture/stage-2-specification.md`](../../../../../docs/architecture/stage-2-specification.md:334)

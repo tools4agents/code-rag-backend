@@ -31,4 +31,4 @@
 ## Связанные требования
 
 - [`docs/contracts/contract-tests.md`](../../contracts/contract-tests.md)
-- [`docs/architecture/stage-2-specification.md`](../../architecture/stage-2-specification.md:274)
+- [`docs/architecture/stage-2-specification.md`](../../../../../docs/architecture/stage-2-specification.md:274)
