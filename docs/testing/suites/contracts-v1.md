@@ -15,18 +15,24 @@
 - Query request/response.
 - Error envelope.
 - Provider capabilities, включая различия `qwen3-embedding` и `bge-m3`.
+- Негативные сценарии required/type/enum по каждой схеме и nested `$ref` валидация для `push_batch -> push_item`.
 
 ## Ключевые тест-кейсы
 
-- [`test_push_batch_valid_minimal()`](../../../tests/contracts/test_v1_schemas.py:75)
-- [`test_push_item_invalid_empty_content()`](../../../tests/contracts/test_v1_schemas.py:118)
-- [`test_error_envelope_valid()`](../../../tests/contracts/test_v1_schemas.py:250)
-- [`test_provider_capabilities_valid_qwen()`](../../../tests/contracts/test_v1_schemas.py:268)
-- [`test_provider_capabilities_valid_bge_m3()`](../../../tests/contracts/test_v1_schemas.py:286)
+- [`test_push_batch_invalid_item_missing_node_id()`](../../../tests/contracts/test_v1_schemas.py:122)
+- [`test_push_item_invalid_missing_git_commit()`](../../../tests/contracts/test_v1_schemas.py:205)
+- [`test_query_request_invalid_top_k_type()`](../../../tests/contracts/test_v1_schemas.py:341)
+- [`test_error_envelope_valid_business_error()`](../../../tests/contracts/test_v1_schemas.py:403)
+- [`test_provider_capabilities_valid_qwen_with_instruction()`](../../../tests/contracts/test_v1_schemas.py:464)
+- [`test_provider_capabilities_invalid_empty_instruction_hint()`](../../../tests/contracts/test_v1_schemas.py:548)
 
 ## Команда запуска
 
 - `uv run pytest tests/contracts/test_v1_schemas.py`
+
+## Ожидаемый результат
+
+- Полный suite проходит локально: `38 passed`.
 
 ## Связанные требования
 
