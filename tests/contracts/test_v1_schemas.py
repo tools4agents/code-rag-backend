@@ -31,6 +31,7 @@ def _build_registry() -> Registry:
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
         resource = Resource(contents=schema, specification=DRAFT202012)
         registry = registry.with_resource(uri=schema_path.name, resource=resource)
+        registry = registry.with_resource(uri=f"./{schema_path.name}", resource=resource)
     return registry
 
 
@@ -96,6 +97,54 @@ def test_push_batch_invalid_contract_version() -> None:
     _assert_invalid("push_batch.schema.json", payload)
 
 
+def test_push_batch_invalid_missing_contract_version() -> None:
+    """Reject push batch without contract version."""
+    payload = {
+        "project": "root",
+        "source": "code-atlas",
+        "batch_id": "atlas-batch-1",
+        "items": [],
+    }
+    _assert_invalid("push_batch.schema.json", payload)
+
+
+def test_push_batch_invalid_missing_items() -> None:
+    """Reject push batch without required items list."""
+    payload = {
+        "contract_version": "1.0",
+        "project": "root",
+        "source": "code-atlas",
+        "batch_id": "atlas-batch-1",
+    }
+    _assert_invalid("push_batch.schema.json", payload)
+
+
+def test_push_batch_invalid_item_missing_node_id() -> None:
+    """Reject push batch when nested item misses required field."""
+    payload = {
+        "contract_version": "1.0",
+        "project": "root",
+        "source": "code-atlas",
+        "batch_id": "atlas-batch-1",
+        "items": [
+            {
+                "node_type": "function",
+                "path": "src/auth.py",
+                "language": "python",
+                "content": "def login(): ...",
+                "range": {"start_line": 1, "end_line": 10},
+                "source_audit": {
+                    "git_commit": "abc123",
+                    "git_branch": "main",
+                    "git_dirty": False,
+                    "captured_at": "2026-02-20T12:00:00Z",
+                },
+            }
+        ],
+    }
+    _assert_invalid("push_batch.schema.json", payload)
+
+
 def test_push_item_valid_minimal() -> None:
     """Validate minimal valid push item."""
     payload = {
@@ -134,6 +183,43 @@ def test_push_item_invalid_empty_content() -> None:
     _assert_invalid("push_item.schema.json", payload)
 
 
+def test_push_item_invalid_missing_start_line() -> None:
+    """Reject push item when range.start_line is missing."""
+    payload = {
+        "node_id": "func:src/auth.py:AuthService.login",
+        "node_type": "function",
+        "path": "src/auth.py",
+        "language": "python",
+        "content": "def login(): ...",
+        "range": {"end_line": 10},
+        "source_audit": {
+            "git_commit": "abc123",
+            "git_branch": "main",
+            "git_dirty": False,
+            "captured_at": "2026-02-20T12:00:00Z",
+        },
+    }
+    _assert_invalid("push_item.schema.json", payload)
+
+
+def test_push_item_invalid_missing_git_commit() -> None:
+    """Reject push item when source audit misses git commit."""
+    payload = {
+        "node_id": "func:src/auth.py:AuthService.login",
+        "node_type": "function",
+        "path": "src/auth.py",
+        "language": "python",
+        "content": "def login(): ...",
+        "range": {"start_line": 1, "end_line": 10},
+        "source_audit": {
+            "git_branch": "main",
+            "git_dirty": False,
+            "captured_at": "2026-02-20T12:00:00Z",
+        },
+    }
+    _assert_invalid("push_item.schema.json", payload)
+
+
 def test_push_acceptance_valid() -> None:
     """Validate push acceptance response."""
     payload = {
@@ -162,6 +248,38 @@ def test_push_acceptance_invalid_missing_message() -> None:
     _assert_invalid("push_acceptance.schema.json", payload)
 
 
+def test_push_acceptance_invalid_missing_batch_id() -> None:
+    """Reject push acceptance without batch id."""
+    payload = {
+        "accepted": 10,
+        "rejected": 1,
+        "errors": [
+            {
+                "node_id": "func:src/auth.py:broken",
+                "code": "VALIDATION_ERROR",
+                "message": "content is empty",
+            }
+        ],
+    }
+    _assert_invalid("push_acceptance.schema.json", payload)
+
+
+def test_push_acceptance_invalid_missing_code() -> None:
+    """Reject push acceptance error item without error code."""
+    payload = {
+        "batch_id": "atlas-batch-1",
+        "accepted": 10,
+        "rejected": 1,
+        "errors": [
+            {
+                "node_id": "func:src/auth.py:broken",
+                "message": "content is empty",
+            }
+        ],
+    }
+    _assert_invalid("push_acceptance.schema.json", payload)
+
+
 def test_reconcile_request_valid() -> None:
     """Validate reconcile request in dry-run mode."""
     payload = {"project": "root", "mode": "dry_run"}
@@ -171,6 +289,12 @@ def test_reconcile_request_valid() -> None:
 def test_reconcile_request_invalid_mode() -> None:
     """Reject reconcile request with unknown mode."""
     payload = {"project": "root", "mode": "diff"}
+    _assert_invalid("reconcile_request.schema.json", payload)
+
+
+def test_reconcile_request_invalid_missing_project() -> None:
+    """Reject reconcile request without project field."""
+    payload = {"mode": "dry_run"}
     _assert_invalid("reconcile_request.schema.json", payload)
 
 
@@ -191,6 +315,17 @@ def test_reconcile_response_invalid_missing_summary() -> None:
     _assert_invalid("reconcile_response.schema.json", payload)
 
 
+def test_reconcile_response_invalid_action_missing_action() -> None:
+    """Reject reconcile response action item without action type."""
+    payload = {
+        "project": "root",
+        "mode": "fix",
+        "summary": {"missing": 0, "stale": 0, "orphan": 1},
+        "actions": [{"node_id": "func:src/auth.py:orphan"}],
+    }
+    _assert_invalid("reconcile_response.schema.json", payload)
+
+
 def test_query_request_valid() -> None:
     """Validate minimal query request."""
     payload = {"query": "Auth login", "project": "root"}
@@ -200,6 +335,12 @@ def test_query_request_valid() -> None:
 def test_query_request_invalid_missing_query() -> None:
     """Reject query request without query text."""
     payload = {"project": "root"}
+    _assert_invalid("query_request.schema.json", payload)
+
+
+def test_query_request_invalid_top_k_type() -> None:
+    """Reject query request with non-integer top_k."""
+    payload = {"query": "Auth login", "project": "root", "top_k": "10"}
     _assert_invalid("query_request.schema.json", payload)
 
 
@@ -259,9 +400,32 @@ def test_error_envelope_valid() -> None:
     _assert_valid("error_envelope.schema.json", payload)
 
 
+def test_error_envelope_valid_business_error() -> None:
+    """Validate business error payload in standard envelope."""
+    payload = {
+        "error": {
+            "code": "MODEL_NOT_FOUND",
+            "message": "embedding model is not available",
+            "details": {"model": "qwen3-embedding"},
+        }
+    }
+    _assert_valid("error_envelope.schema.json", payload)
+
+
 def test_error_envelope_invalid_missing_error() -> None:
     """Reject object without `error` root field."""
     payload = {"code": "VALIDATION_ERROR", "message": "invalid payload", "details": {}}
+    _assert_invalid("error_envelope.schema.json", payload)
+
+
+def test_error_envelope_invalid_missing_message() -> None:
+    """Reject envelope when required error.message is absent."""
+    payload = {
+        "error": {
+            "code": "VALIDATION_ERROR",
+            "details": {"field": "query"},
+        }
+    }
     _assert_invalid("error_envelope.schema.json", payload)
 
 
@@ -297,6 +461,24 @@ def test_provider_capabilities_valid_bge_m3() -> None:
     _assert_valid("provider_capabilities.schema.json", payload)
 
 
+def test_provider_capabilities_valid_qwen_with_instruction() -> None:
+    """Validate qwen contract with explicit instruction recommendation."""
+    payload = {
+        "provider": "ollama",
+        "model": "qwen3-embedding",
+        "capabilities": {
+            "supports_dimensions": True,
+            "supports_instruction": True,
+            "max_context_tokens": 32768,
+            "recommended_query_instruction": (
+                "Given a code search query, retrieve relevant code snippets"
+            ),
+            "supported_dimensions": {"min": 32, "max": 4096},
+        },
+    }
+    _assert_valid("provider_capabilities.schema.json", payload)
+
+
 def test_provider_capabilities_invalid_missing_model() -> None:
     """Reject provider capabilities without model field."""
     payload = {
@@ -305,6 +487,45 @@ def test_provider_capabilities_invalid_missing_model() -> None:
             "supports_dimensions": True,
             "supports_instruction": True,
             "max_context_tokens": 32768,
+        },
+    }
+    _assert_invalid("provider_capabilities.schema.json", payload)
+
+
+def test_provider_capabilities_invalid_missing_supports_dimensions() -> None:
+    """Reject provider capabilities without supports_dimensions field."""
+    payload = {
+        "provider": "ollama",
+        "model": "qwen3-embedding",
+        "capabilities": {
+            "supports_instruction": True,
+            "max_context_tokens": 32768,
+        },
+    }
+    _assert_invalid("provider_capabilities.schema.json", payload)
+
+
+def test_provider_capabilities_invalid_missing_supports_instruction() -> None:
+    """Reject provider capabilities without supports_instruction field."""
+    payload = {
+        "provider": "ollama",
+        "model": "qwen3-embedding",
+        "capabilities": {
+            "supports_dimensions": True,
+            "max_context_tokens": 32768,
+        },
+    }
+    _assert_invalid("provider_capabilities.schema.json", payload)
+
+
+def test_provider_capabilities_invalid_missing_max_context_tokens() -> None:
+    """Reject provider capabilities without max context token limit."""
+    payload = {
+        "provider": "ollama",
+        "model": "bge-m3",
+        "capabilities": {
+            "supports_dimensions": False,
+            "supports_instruction": False,
         },
     }
     _assert_invalid("provider_capabilities.schema.json", payload)
@@ -319,6 +540,36 @@ def test_provider_capabilities_invalid_zero_context_window() -> None:
             "supports_dimensions": False,
             "supports_instruction": False,
             "max_context_tokens": 0,
+        },
+    }
+    _assert_invalid("provider_capabilities.schema.json", payload)
+
+
+def test_provider_capabilities_invalid_empty_instruction_hint() -> None:
+    """Reject empty recommended_query_instruction string."""
+    payload = {
+        "provider": "ollama",
+        "model": "qwen3-embedding",
+        "capabilities": {
+            "supports_dimensions": True,
+            "supports_instruction": True,
+            "max_context_tokens": 32768,
+            "recommended_query_instruction": "",
+        },
+    }
+    _assert_invalid("provider_capabilities.schema.json", payload)
+
+
+def test_provider_capabilities_invalid_supported_dimensions_missing_max() -> None:
+    """Reject supported_dimensions object without max boundary."""
+    payload = {
+        "provider": "ollama",
+        "model": "qwen3-embedding",
+        "capabilities": {
+            "supports_dimensions": True,
+            "supports_instruction": True,
+            "max_context_tokens": 32768,
+            "supported_dimensions": {"min": 32},
         },
     }
     _assert_invalid("provider_capabilities.schema.json", payload)
