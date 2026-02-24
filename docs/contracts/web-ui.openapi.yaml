@@ -1,0 +1,522 @@
+openapi: 3.0.3
+info:
+  title: code-rag Web UI API
+  version: 1.0.0
+  description: "API для Web UI (FastAPI). Base path: /api/v1"
+
+servers:
+  - url: /api/v1
+
+paths:
+  /projects:
+    get:
+      summary: List projects
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectList"
+    post:
+      summary: Create project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "400":
+          $ref: "#/components/responses/Error"
+
+  /projects/{project_id}:
+    get:
+      summary: Get project details
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          $ref: "#/components/responses/Error"
+    patch:
+      summary: Update project display name
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          $ref: "#/components/responses/Error"
+    delete:
+      summary: Delete project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "204":
+          description: No Content
+        "404":
+          $ref: "#/components/responses/Error"
+
+  /projects/{project_id}/index:
+    post:
+      summary: Start indexing
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IndexStart"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndexJob"
+        "400":
+          $ref: "#/components/responses/Error"
+
+  /projects/{project_id}/index/status:
+    get:
+      summary: Get indexing status (polling fallback)
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndexStatus"
+        "404":
+          $ref: "#/components/responses/Error"
+
+  /projects/{project_id}/index/stop:
+    post:
+      summary: Stop indexing
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndexJob"
+        "404":
+          $ref: "#/components/responses/Error"
+
+  /projects/{project_id}/events:
+    get:
+      summary: SSE stream for indexing progress
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: text/event-stream
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/IndexEvent"
+
+  /catalogs/chunkers:
+    get:
+      summary: List available chunkers
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChunkerCatalog"
+
+  /catalogs/embedders:
+    get:
+      summary: List available embedders
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmbedderCatalog"
+
+  /projects/{project_id}/search:
+    post:
+      summary: Search in project namespace
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+
+components:
+  parameters:
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+
+  schemas:
+    Project:
+      type: object
+      required: [project_id, path, display_name]
+      properties:
+        project_id:
+          type: string
+        path:
+          type: string
+        display_name:
+          type: string
+
+    ProjectList:
+      type: object
+      required: [projects]
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/Project"
+
+    ProjectCreate:
+      type: object
+      required: [path, display_name]
+      properties:
+        path:
+          type: string
+        display_name:
+          type: string
+
+    ProjectUpdate:
+      type: object
+      required: [display_name]
+      properties:
+        display_name:
+          type: string
+
+    IndexStart:
+      type: object
+      required: [chunker, embedder]
+      properties:
+        chunker:
+          $ref: "#/components/schemas/ChunkerSettings"
+        embedder:
+          $ref: "#/components/schemas/EmbedderSettings"
+
+    IndexJob:
+      type: object
+      required: [job_id, status, progress]
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, completed, failed, canceled]
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    IndexStatus:
+      type: object
+      required: [job_id, status, progress, details]
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, completed, failed, canceled]
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+        details:
+          $ref: "#/components/schemas/IndexStatusDetails"
+        error:
+          $ref: "#/components/schemas/IndexingError"
+
+    IndexStatusDetails:
+      type: object
+      required: [processed_items, total_items, embedder, timestamps]
+      properties:
+        processed_items:
+          type: integer
+          minimum: 0
+        total_items:
+          type: integer
+          minimum: 0
+        embedder:
+          $ref: "#/components/schemas/EmbedderRunSettings"
+        timestamps:
+          $ref: "#/components/schemas/IndexJobTimestamps"
+
+    EmbedderRunSettings:
+      type: object
+      required: [model, truncate]
+      properties:
+        model:
+          type: string
+        dimensions:
+          type: integer
+          minimum: 1
+          nullable: true
+        instruction:
+          type: string
+          nullable: true
+        truncate:
+          type: boolean
+
+    IndexJobTimestamps:
+      type: object
+      required: [created_at, updated_at]
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        failed_at:
+          type: string
+          format: date-time
+          nullable: true
+        canceled_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    IndexingError:
+      type: object
+      required: [code, message, details, provider_error]
+      properties:
+        code:
+          type: string
+          description: Stable error code, including provider errors.
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        provider_error:
+          type: boolean
+          description: True when error originates from embedding provider.
+
+    IndexEvent:
+      type: object
+      required: [event, job_id, status, progress]
+      properties:
+        event:
+          type: string
+          enum: [started, progress, completed, failed, reset]
+        job_id:
+          type: string
+        status:
+          type: string
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    ChunkerCatalog:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChunkerCatalogItem"
+
+    ChunkerCatalogItem:
+      type: object
+      required: [type, name, defaults]
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        defaults:
+          $ref: "#/components/schemas/ChunkerSettings"
+
+    ChunkerSettings:
+      type: object
+      required: [type, chunk_size, chunk_overlap]
+      properties:
+        type:
+          type: string
+          enum: [simple_file_chunks]
+        chunk_size:
+          type: integer
+          minimum: 1
+        chunk_overlap:
+          type: integer
+          minimum: 0
+
+    EmbedderCatalog:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbedderCatalogItem"
+
+    EmbedderCatalogItem:
+      type: object
+      required: [type, name, defaults, capabilities]
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        defaults:
+          $ref: "#/components/schemas/EmbedderSettings"
+        capabilities:
+          $ref: "#/components/schemas/EmbedderCapabilities"
+
+    EmbedderCapabilities:
+      type: object
+      required:
+        [supports_dimensions, supports_instruction, max_context_tokens]
+      properties:
+        supports_dimensions:
+          type: boolean
+        supports_instruction:
+          type: boolean
+        max_context_tokens:
+          type: integer
+          minimum: 1
+        recommended_query_instruction:
+          type: string
+
+    EmbedderSettings:
+      type: object
+      required: [type, model]
+      properties:
+        type:
+          type: string
+          enum: [ollama]
+        model:
+          type: string
+          enum: [qwen3-embedding, bge-m3]
+        instruction:
+          type: string
+          description: Optional query-side instruction (recommended for qwen3-embedding).
+        dimensions:
+          type: integer
+          minimum: 1
+          maximum: 4096
+          description: Optional output dimensions when supported by selected model.
+        truncate:
+          type: boolean
+          default: true
+          description: Truncate long input when it exceeds model context window.
+        provider_options:
+          type: object
+          description: Provider-specific options passed through as-is.
+          additionalProperties: true
+
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 100
+
+    SearchResponse:
+      type: object
+      required: [matches]
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchMatch"
+
+    SearchMatch:
+      type: object
+      required: [score, node_id, path, start_line, end_line, content]
+      properties:
+        score:
+          type: number
+        node_id:
+          type: string
+        path:
+          type: string
+        start_line:
+          type: integer
+        end_line:
+          type: integer
+        content:
+          type: string
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, details]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object

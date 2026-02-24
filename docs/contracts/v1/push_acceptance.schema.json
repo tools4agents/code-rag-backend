@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PushAcceptance",
+  "type": "object",
+  "required": ["batch_id", "accepted", "rejected", "errors"],
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "accepted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rejected": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "code", "message"],
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

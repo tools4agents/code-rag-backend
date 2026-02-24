@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PushItem",
+  "type": "object",
+  "required": [
+    "node_id",
+    "node_type",
+    "path",
+    "language",
+    "content",
+    "range",
+    "source_audit"
+  ],
+  "properties": {
+    "node_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "node_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1
+    },
+    "range": {
+      "type": "object",
+      "required": ["start_line", "end_line"],
+      "properties": {
+        "start_line": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "source_audit": {
+      "type": "object",
+      "required": ["git_commit", "git_branch", "git_dirty", "captured_at"],
+      "properties": {
+        "git_commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "git_branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "git_dirty": {
+          "type": "boolean"
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "symbol_meta": {
+      "type": "object",
+      "required": ["module", "qualname"],
+      "properties": {
+        "module": {
+          "type": "string",
+          "minLength": 1
+        },
+        "qualname": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

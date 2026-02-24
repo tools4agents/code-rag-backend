@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QueryResponse",
+  "type": "object",
+  "required": ["matches"],
+  "properties": {
+    "matches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["score", "node_id", "path", "start_line", "end_line", "content"],
+        "properties": {
+          "score": {
+            "type": "number"
+          },
+          "node_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "start_line": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end_line": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "project": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              },
+              "chunk_id": {
+                "type": "string"
+              },
+              "chunk_strategy": {
+                "type": "string"
+              },
+              "source_audit": {
+                "type": "object",
+                "properties": {
+                  "source_system": {
+                    "type": "string"
+                  },
+                  "source_batch_id": {
+                    "type": "string"
+                  },
+                  "git_commit": {
+                    "type": "string"
+                  },
+                  "git_branch": {
+                    "type": "string"
+                  },
+                  "git_dirty": {
+                    "type": "boolean"
+                  },
+                  "source_captured_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "index_audit": {
+                "type": "object",
+                "properties": {
+                  "indexed_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "indexer_version": {
+                    "type": "string"
+                  },
+                  "embedder_provider": {
+                    "type": "string"
+                  },
+                  "embedder_model": {
+                    "type": "string"
+                  },
+                  "vector_backend": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

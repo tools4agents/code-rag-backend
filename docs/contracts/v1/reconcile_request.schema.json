@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReconcileRequest",
+  "type": "object",
+  "required": ["project", "mode"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["dry_run", "fix"]
+    },
+    "batch_id": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

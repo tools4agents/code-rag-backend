@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReconcileResponse",
+  "type": "object",
+  "required": ["project", "mode", "summary", "actions"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["dry_run", "fix"]
+    },
+    "summary": {
+      "type": "object",
+      "required": ["missing", "stale", "orphan"],
+      "properties": {
+        "missing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stale": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "orphan": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action", "node_id"],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["upsert", "reindex", "delete"]
+          },
+          "node_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
