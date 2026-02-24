@@ -1,0 +1,24 @@
+[project]
+name = "code-rag-backend"
+version = "0.1.0"
+description = "Backend domain service for code-rag"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "jsonschema>=4.23.0",
+    "openapi-spec-validator>=0.7.1",
+    "pytest>=8.3.5",
+    "PyYAML>=6.0.2",
+    "referencing>=0.35.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[build-system]
+requires = ["uv_build>=0.9.26"]
+build-backend = "uv_build"

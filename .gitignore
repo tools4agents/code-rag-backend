@@ -1,0 +1,21 @@
+# Ignore virtual envs
+.venv/
+.env
+tmp
+
+# nested git repo
+.kilocode/
+
+# Ignore tests dir and service sandbox
+debug_tests/
+sandbox
+.pytest_cache/
+
+# Ignore all __pycache__ directories recursively
+**/__pycache__/
+*.py[cod]
+*$py.class
+.hpm/
+dist/
+build/
+*.egg-info/
